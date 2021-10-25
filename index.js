@@ -23,6 +23,7 @@ SELECT role.id, role.title, department.name, role.salary
 FROM role 
 JOIN department 
 ON role.department_id = department.id
+ORDER BY id;
 `
 
 const empNameQuery = `
@@ -115,8 +116,11 @@ function addDepartment() {
             type: "input"
         },
     ]).then(({ name }) => {
-        console.log('Department Added');
-        manageTeam()
+        let insertDepQuery = 'INSERT INTO department (name) VALUES (?)';
+        connection.query(insertDepQuery, name, function(err, result, fields) {
+            console.log('Department Added');
+            manageTeam()
+        })
     })
 }
 
@@ -124,11 +128,10 @@ function addRole() {
     connection.query(
         departmentQuery,
         function (err, results, fields) {
-            console.log(results);
             inquirer.prompt([
                 {
-                    name: "name",
-                    message: "What is the name of the role?",
+                    name: "title",
+                    message: "What is the title of the role?",
                     type: "input"
                 },
                 {
@@ -137,7 +140,7 @@ function addRole() {
                     type: "input"
                 },
                 {
-                    name: "department",
+                    name: "department_id",
                     message: "Which department does this role belong to?",
                     type: "list",
                     choices: results.map(result => {
@@ -148,8 +151,18 @@ function addRole() {
                     })
                 },
             ]).then((answers) => {
-                console.log('Role Added');
-                manageTeam()
+                let insertRoleQuery = 'insert into role(title, salary, department_id) values(?,?,?)';
+                let insertData = [answers.title, answers.salary, answers.department_id];
+                connection.query(insertRoleQuery, 
+                    insertData,
+                    function (err, result, fields) {
+                        if (err) {
+                            console.log(err);
+                        } else {
+                        console.log('Role Added');
+                        manageTeam()
+                    }
+                })
             })
         }
     );
@@ -249,8 +262,8 @@ function selectEmployeeToUpdate() {
                     })
                 },
             ]).then((answers) => {
-                console.log(answers)
-                updateEmployee()
+                // console.log(answers)
+                updateEmployee(answers.employee_id)
             })
         }
     );
@@ -275,11 +288,26 @@ function updateEmployee(employee_id) {
                     }),
                 }]
             ).then((answers) => {
-                console.log(answers)
-                manageTeam()
+                let updateEmpQuery = 'UPDATE employee SET role_id = ? WHERE id = ?';
+                let updateData = [answers.role_id, employee_id];
+                connection.query(updateEmpQuery, 
+                updateData, function(err, results, fields) {
+                    if (err) {
+                        console.log(err);
+                    }
+                    console.log("Employee Updated")
+                    // console.log(insertEmpResult)
+                    manageTeam()
+                })
             })
         }
     );
 }
 
 manageTeam()
+
+// update employee managers;
+// view employees by manager
+// view employee by department
+// delete departments, roles, and employees
+// view the total utilized budget of a department - in other words, the combined salaries of all employees in that department
