@@ -39,7 +39,6 @@ const connection = mysql.createConnection({
 });
 
 function manageTeam() {
-    console.log("Weclome to the Employee Management System")
     inquirer.prompt([
         {
             name: "choices",
